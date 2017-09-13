@@ -1,11 +1,22 @@
 <template>
     <div id="app">
-        hello world
+        <m-header></m-header>
+        <tab></tab>
+        <keep-alive>
+            <router-view></router-view>
+        </keep-alive>
     </div>
 </template>
 
 <script>
-    
+    import MHeader from '@/components/m-header'
+    import Tab from '@/components/tab'
+    export default {
+        components:{
+            MHeader,
+            Tab
+        }
+    }
 </script>
 
 <style scoped lang="less" rel="stylesheet/less">
