@@ -30,6 +30,9 @@ module.exports = {
     'key-spacing':0,
     'indent':0,
     'no-unreachable':0,
-    'no-unused-vars':0
+    'no-unused-vars':0,
+    'space-before-blocks':0,
+    'keyword-spacing':0,
+    'comma-spacing':0
   }
 }
