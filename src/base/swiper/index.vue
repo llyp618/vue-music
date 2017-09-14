@@ -3,7 +3,7 @@
         <swipe v-if="recommends.length" >
             <swipe-item :key="recommends[0].id">
                 <a :href="recommends[0].linkUrl">
-                    <img :src="recommends[0].picUrl" @load.once="autoFix" alt="" class="swiper-img" ref="firstImg">
+                    <img :src="recommends[0].picUrl" @load.once="_autoFix" alt="" class="swiper-img">
                 </a>
             </swipe-item>    
             <swipe-item v-for="(item, index) in recommends" v-if="index > 0" :key="item.id">
@@ -19,7 +19,15 @@ import 'vue-swipe/dist/vue-swipe.css'
 import { Swipe, SwipeItem } from 'vue-swipe'
 export default {
     name:'swiper',
-    props:['recommends'],
+    props:{
+        recommends: {
+            type: Array,
+            default: []
+        },
+        refreshScroll: {
+            type: Function
+        }
+    },
     mounted() {
         let timer = null
         window.addEventListener('resize', () => {
@@ -27,18 +35,21 @@ export default {
                return false
            }
            timer = setTimeout(() => {
-               this.autoFix()
+               this._autoFix()
                clearTimeout(timer)
                timer = null
            }, 200)
         })
     },
     methods:{
-        autoFix() { 
+        _autoFix() { 
             // let h = this.$refs.firstImg.clientHeight 图片隐藏时会是0 换下面这种方法
             let h = document.querySelector('.is-active .swiper-img').clientHeight
-            console.log(h)
             this.$refs.wrapper.style.height = h + 'px'
+            if (!this.isLoaded) {
+                this.isLoaded = true
+                this.$emit('refreshScroll')
+            }
         }
     },
     components:{

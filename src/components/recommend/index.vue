@@ -1,31 +1,50 @@
 <template>
     <div class="recommend">
-        <div class="recommend-content">
-            <swiper v-if="recommends.length" :recommends="recommends"></swiper>
+        <scroll class="recommend-content" :data="discList" ref="scroll">
+            <swiper v-if="recommends.length" :recommends="recommends" @refreshScroll="_refreshScroll"></swiper>
             <div class="recommend-list">
                 <h1 class="list-title">
                     热门歌单推荐
                 </h1>
-                <ul></ul>
+                <ul>
+                    <li v-for="item in discList" class="item">
+                        <div class="icon">
+                            <img v-lazy="item.imgurl" alt="" width="60" height="60">
+                        </div>
+                        <div class="text">
+                            <h2 class="name" v-html="item.creator.name"></h2>
+                            <p class="desc" v-html="item.dissname"></p>
+                        </div>
+                    </li>
+                </ul>
             </div>
+        </scroll>
+        <div class="loading-container" v-show="!discList.length">
+            <loading></loading>
         </div>
     </div>
 </template>
 <script>
 import Swiper from '@/base/swiper'
-import { getRecommend } from '@/api/recommend'
+import Scroll from '@/base/scroll'
+import Loading from '@/base/loading'
+import { getRecommend, getDistList } from '@/api/recommend'
 import {ERR_OK} from '@/api/config'
 export default {
     data() {
         return {
-            recommends:[]
+            recommends:[],
+            discList:[]
         }
     },
     components:{
-        Swiper
+        Swiper,
+        Scroll,
+        Loading
     },
     created() {
         this._getRecommend()
+        this._getDistList()
     },
     methods:{
         _getRecommend() {
@@ -34,6 +53,16 @@ export default {
                    this.recommends = res.data.slider
                 }
             })
+        },
+        _getDistList() {
+            getDistList().then((res) => {
+                if (res.code === ERR_OK) {
+                    this.discList = res.data.list
+                }
+            })
+        },
+        _refreshScroll() {
+            this.$refs.scroll.refresh()
         }
     }
 }
@@ -84,12 +113,12 @@ export default {
                     }
                 }
             }
-            .loading-container {
+        }
+        .loading-container {
                 position:absolute;
                 width:100%;
                 top:50%;
                 transform:translateY(-50%);
             }
-        }
     }
 </style>

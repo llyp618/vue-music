@@ -12,6 +12,7 @@ var webpack = require('webpack')
 var proxyMiddleware = require('http-proxy-middleware')
 var webpackConfig = require('./webpack.dev.conf')
 
+
 // default port where dev server listens for incoming traffic
 var port = process.env.PORT || config.dev.port
 // automatically open browser, if not set will be false
@@ -79,6 +80,27 @@ devMiddleware.waitUntilValid(() => {
   }
   _resolve()
 })
+
+
+// 跨域问题
+var axios = require('axios')
+var apiRoutes = express.Router()
+apiRoutes.get('/getDiscList',function(req,res){
+  var url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
+  axios.get(url,{
+    headers: {
+      referer: 'https://c.y.qq.com/',
+      host: 'c.y.qq.com'
+    },
+    params: req.query
+  }).then((response) => {
+    res.json(response.data)
+  }).catch((e) => {
+    console.error(e)
+  })
+})
+app.use('/api',apiRoutes)
+
 
 var server = app.listen(port)
 
