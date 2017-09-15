@@ -1,22 +1,24 @@
 <template>
     <div class="recommend">
         <scroll class="recommend-content" :data="discList" ref="scroll">
-            <swiper v-if="recommends.length" :recommends="recommends" @refreshScroll="_refreshScroll"></swiper>
-            <div class="recommend-list">
-                <h1 class="list-title">
-                    热门歌单推荐
-                </h1>
-                <ul>
-                    <li v-for="item in discList" class="item">
-                        <div class="icon">
-                            <img v-lazy="item.imgurl" alt="" width="60" height="60">
-                        </div>
-                        <div class="text">
-                            <h2 class="name" v-html="item.creator.name"></h2>
-                            <p class="desc" v-html="item.dissname"></p>
-                        </div>
-                    </li>
-                </ul>
+            <div>
+                <swiper v-if="recommends.length" :recommends="recommends" @refreshScroll="_refreshScroll"></swiper>
+                <div class="recommend-list">
+                    <h1 class="list-title">
+                        热门歌单推荐
+                    </h1>
+                    <ul>
+                        <li v-for="item in discList" class="item">
+                            <div class="icon">
+                                <img v-lazy="item.imgurl" alt="" width="60" height="60">
+                            </div>
+                            <div class="text">
+                                <h2 class="name" v-html="item.creator.name"></h2>
+                                <p class="desc" v-html="item.dissname"></p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </scroll>
         <div class="loading-container" v-show="!discList.length">
