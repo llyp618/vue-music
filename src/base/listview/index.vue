@@ -4,7 +4,7 @@
             <li class="list-group" v-for="group in data" ref="listGroup">  <!-- 这里的ref 会生成一个数组 存储dom索引 -->
                 <h2 class="list-group-title">{{group.title}}</h2>
                 <ul>
-                    <li class="list-group-item" v-for="item in group.items" :key="item.id">
+                    <li class="list-group-item" v-for="item in group.items" :key="item.id" @click="selectItem(item)">
                         <img class="avatar" v-lazy="item.avatar">
                         <span class="name">{{item.name}}</span>
                     </li>
@@ -73,6 +73,10 @@
             }
         },
         methods: {
+            selectItem(item){
+                console.log(item)
+                this.$emit('select', item)
+            },
             refresh() {
                 this.$refs.listview.refresh()
             },
