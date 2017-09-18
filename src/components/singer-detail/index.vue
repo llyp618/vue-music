@@ -1,6 +1,6 @@
 <template>
     <transition name="slide">
-        <music-list :title="singer.name" :bgImage="singer.avatar"></music-list>
+        <music-list :title="singer.name" :bgImage="singer.avatar" :songs="songs"></music-list>
     </transition>
 </template>
 <script>
@@ -8,7 +8,7 @@
     import {getSingerDetail} from '@/api/singer'
     import {ERR_OK} from '@/api/config'
     import MusicList from '@/components/music-list'
-    import {createSong} from '@/common/js/song'
+    import {createSong}from '@/common/js/song'
     export default {
         components:{
             MusicList
