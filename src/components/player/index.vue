@@ -20,25 +20,36 @@
 				<div class="middle">
 					<div class="middle-l">
 						<div class="cd-wrapper" ref="cdWrapper">
-							<div class="cd">
-								<img :src="currentSong.image" alt="" class="image">
+							<div class="cd" :class="playing ? 'play' : 'play pause'">
+								<img :src="currentSong.image" alt="" class="image" >
 							</div>
 						</div>
 					</div>
 				</div>
 				<div class="bottom">
+					<div class="progress-wrapper">
+						<span class="time time-l">
+							{{format(currentTime)}}
+						</span>
+						<div class="progress-bar-wrapper">
+							<progress-bar :percent="percent" @percentChange="onPercentChange"></progress-bar>
+						</div>
+						<span class="time time-r">
+							{{format(currentSong.duration)}}
+						</span>
+					</div>
 					<div class="operators">
 						<div class="icon i-left">
 							<i class="icon-sequence"></i>
 						</div>
-						<div class="icon i-left">
-							<i class="icon-prev"></i>
+						<div class="icon i-left" :class="songReady ? '' : 'disable'">
+							<i class="icon-prev" @click="selectPrev"></i>
 						</div>
-						<div class="icon i-center">
-							<i class="icon-play"></i>
+						<div class="icon i-center" :class="songReady ? '' : 'disable'">
+							<i @click="togglePlaying" :class="playing ? 'icon-pause' : 'icon-play'"></i>
 						</div>
-						<div class="icon i-right">
-							<i class="icon-next"></i>
+						<div class="icon i-right" :class="songReady ? '' : 'disable'">
+							<i class="icon-next" @click="selectNext"></i>
 						</div>
 						<div class="icon i-right">
 							<i class="icon icon-not-favorite"></i>
@@ -49,33 +60,50 @@
 		</transition>
 		<div class="mini-player" v-show="!fullScreen">
 			<div class="icon" @click="open">
-			    <img width="40" height="40" :src="currentSong.image">
+			    <img width="40" height="40" :src="currentSong.image" :class="playing ? 'play' : 'play pause'">
 			</div>
 			<div class="text">
 				<h2 class="name" v-html="currentSong.name"></h2>
 				<p class="desc" v-html="currentSong.singer"></p>
 			</div>
 			<div class="control">
+				<i :class="playing ? 'icon-pause-mini' : 'icon-play-mini'" @click="togglePlaying"></i>
 			</div>
 			<div class="control">
 			    <i class="icon-playlist"></i>
 			</div>
 		</div>
+		<audio ref="audio" :src="currentSong.url" :paused="!playing" @canplay="ready" @error="error" @timeupdate="updateTime"></audio>
 	</div>
 </template>
 <script>
 import {mapGetters,mapMutations} from 'vuex'
 import animations from 'create-keyframe-animation'
 import {prefixStyle} from '@/common/js/dom'
+import progressBar from '@/base/progress-bar'
 
 const TRANSFORM = prefixStyle('transform')
 const TRANSITION = prefixStyle('transition')
 export default {
+	data() {
+		return {
+			songReady: false,
+			currentTime: 0
+		}
+	},
+	components:{
+		progressBar
+	},
 	computed: {
+		percent(){
+			return this.currentTime / this.currentSong.duration
+		},
 		...mapGetters([
 			'fullScreen',
 			'playlist',
-			'currentSong'
+			'currentSong',
+			'playing',
+			'currentIndex'
 		])
 	},
 	methods: {
@@ -138,9 +166,74 @@ export default {
 				scale
 			}
 		},
+		togglePlaying(){
+			this.SET_PLAYING_STATE(!this.playing)
+		},
+		selectNext(){
+			if(!this.songReady){  // 防止快速点击
+				return
+			}
+			this.songReady = false
+			let nextIndex = this.currentIndex + 1 
+			let index = nextIndex > this.playlist.length - 1 ? 0 : nextIndex
+			this.SET_CURRENT_INDEX(index)
+			if(!this.playing){
+				this.togglePlaying()
+			}
+		},
+		selectPrev(){
+			if(!this.songReady){
+				return
+			}
+			this.songReady = false
+			let prevIndex = this.currentIndex - 1 
+			let index = prevIndex < 0 ? this.playlist.length - 1 : prevIndex
+			this.SET_CURRENT_INDEX(index)
+			if(!this.playing){
+				this.togglePlaying()
+			}
+		},
+		ready() {
+			this.songReady = true
+		},
+		error() {
+			this.songReady = true
+		},
+		updateTime(e) {
+			this.currentTime = e.target.currentTime
+		},
+		format(interval) {
+			interval = interval | 0
+			let minute = '' + interval / 60 | 0
+			let second = '' + interval % 60
+			second = second.length < 2 ? ('0' + second) : second
+			return `${minute}:${second}`
+		},
+		onPercentChange(percent) {
+			const currentTime = this.currentSong.duration * percent
+			this.$refs.audio.currentTime = currentTime  // 会触发updatetime 事件
+			if (!this.playing) {
+				this.togglePlaying()
+			}
+		},
 		...mapMutations([
-			'SET_FULL_SCREEN'
+			'SET_FULL_SCREEN',
+			'SET_PLAYING_STATE',
+			'SET_CURRENT_INDEX'
 		])
+	},
+	watch: {
+		currentSong(){
+			this.$nextTick(() => {
+				this.$refs.audio.play()
+			})
+		},
+		playing(state){
+			let audio = this.$refs.audio
+			this.$nextTick(() => {
+				state ? audio.play() : audio.pause()
+			})
+		}
 	}
 }
 </script>
@@ -264,6 +357,29 @@ export default {
 				position: absolute;
 				bottom:50px;
 				width:100%;
+				.progress-wrapper {
+					display:flex;
+					align-items:center;
+					width:80%;
+					margin:0px auto;
+					padding:10px 0;
+					.time {
+						flex:0 0 30px;
+						color: @color-text;
+						font-size:@font-size-small;
+						line-height:30px;
+						width:30px;
+						&.time-l {
+							text-align:left;
+						}
+						&.time-r {
+							text-align:right;
+						} 
+					}
+					.progress-bar-wrapper {
+						flex:1;
+					}
+				}
 				.operators {
 					display:flex;
 					align-items:center;
@@ -354,6 +470,14 @@ export default {
 					top:0;
 				}
 			}
+		}
+	}
+	@keyframes rotate {
+		0% {
+			transform:rotate(0deg)
+		}
+		100% {
+			transform:rotate(360deg)
 		}
 	}
 </style>
