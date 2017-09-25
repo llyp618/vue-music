@@ -8,7 +8,7 @@
                         热门歌单推荐
                     </h1>
                     <ul>
-                        <li v-for="item in discList" class="item">
+                        <li v-for="item in discList" class="item" @click="_selectItem(item)">
                             <div class="icon">
                                 <img v-lazy="item.imgurl" alt="" width="60" height="60">
                             </div>
@@ -24,6 +24,7 @@
         <div class="loading-container" v-show="!discList.length">
             <loading></loading>
         </div>
+        <router-view></router-view>
     </div>
 </template>
 <script>
@@ -32,6 +33,7 @@ import Scroll from '@/base/scroll'
 import Loading from '@/base/loading'
 import { getRecommend, getDistList } from '@/api/recommend'
 import {ERR_OK} from '@/api/config'
+import {mapMutations} from 'vuex'
 import {playlistMixin} from '@/common/js/mixin'
 
 export default {
@@ -73,7 +75,16 @@ export default {
         },
         _refreshScroll() {
             this.$refs.scroll.refresh()
-        }
+        },
+        _selectItem(item) {
+            this.SET_DISC(item)
+            this.$router.push({
+                path: `/recommend/${item.dissid}`
+            })
+        },
+        ...mapMutations([
+            'SET_DISC'
+        ])
     }
 }
 </script>

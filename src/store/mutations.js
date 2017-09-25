@@ -2,9 +2,15 @@
 import * as types from './mutation-types'
 
 const mutations = {
+    // 歌单recommend 
+    [types.SET_DISC](state, disc) {
+        state.disc = disc
+    },
+    // 歌手singer
     [types.SET_SINGER](state, singer) {
         state.singer = singer
     },
+    // 播放器player
     [types.SET_PLAYING_STATE](state, flag) {
         state.playing = flag
     },
@@ -22,8 +28,11 @@ const mutations = {
     },
     [types.SET_CURRENT_INDEX](state, index) {
         state.currentIndex = index
+    },
+    // 排行榜rank
+    [types.SET_TOP_LIST](state, list) {
+        state.toplist = list
     }
-
 }
 
 export default mutations

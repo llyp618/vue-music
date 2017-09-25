@@ -311,7 +311,14 @@ export default {
 		// 歌词处理
 		getLyric() {
 			this.currentSong.getLyric().then((lyric) => {
-				this.currentLyric = new Lyric(lyric,this.handleLyric)
+				let theLyric = new Lyric(lyric,this.handleLyric)
+				if(theLyric.lines.length === 0) {
+					theLyric.lines.push({
+						time:0,
+						txt:'此歌曲为没有填词的纯音乐，请您欣赏'
+					})
+				}
+				this.currentLyric = theLyric
 				if (this.playing) {
 					this.currentLyric.play()
 				}
@@ -408,6 +415,9 @@ export default {
 			}
 			if(this.currentLyric){
 				this.currentLyric.stop()
+				this.currentTime = 0
+				this.playingLyric = ''
+				this.currentLineNum = 0
 			}
 			// 微信问题
 			// this.$nextTick(() => {

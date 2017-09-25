@@ -1,8 +1,13 @@
 /**
  * getters 存储用于取state值的所有方法 同时，他能对state的数据进行各种处理
  */
+// 歌单 recommend
+export const disc = state => state.disc
+
+// 歌手 singer
 export const singer = state => state.singer
 
+// 播放器 player
 export const playing = state => state.playing
 
 export const fullScreen = state => state.fullScreen
@@ -18,3 +23,5 @@ export const currentIndex = state => state.currentIndex
 export const currentSong = (state) => {
     return state.playlist[state.currentIndex] || {}
 }
+// 排行榜
+export const toplist = state => state.toplist
