@@ -16,7 +16,7 @@
                 return this.toplist.topTitle
             },
             bgImage() {
-                return this.toplist.picUrl
+                return this.songs[0] && this.songs[0].image
             },
             ...mapGetters([
                 'toplist'

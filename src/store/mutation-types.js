@@ -23,3 +23,6 @@ export const SET_CURRENT_INDEX = 'SET_CURRENT_INDEX'
 
 // 排行榜 rank
 export const SET_TOP_LIST = 'SET_TOP_LIST'
+
+// 搜索历史 search
+export const SET_SEARCH_HISTORY = 'SET_SEARCH_HISTORY'

@@ -32,6 +32,10 @@ const mutations = {
     // 排行榜rank
     [types.SET_TOP_LIST](state, list) {
         state.toplist = list
+    },
+    // 搜索历史 search
+    [types.SET_SEARCH_HISTORY](state, history) {
+        state.searchHistory = history
     }
 }
 
