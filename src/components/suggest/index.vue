@@ -143,6 +143,7 @@
                 } else {
                     this.insertSong(item)
                 }
+                // 派发选中事件 给search
                 this.$emit('select', item)
             },
             ...mapMutations([

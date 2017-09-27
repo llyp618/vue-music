@@ -23,5 +23,9 @@ export const currentIndex = state => state.currentIndex
 export const currentSong = (state) => {
     return state.playlist[state.currentIndex] || {}
 }
-// 排行榜
+// 排行榜 rank
 export const toplist = state => state.toplist
+
+// 搜索历史 search
+
+export const searchHistory = state => state.searchHistory
