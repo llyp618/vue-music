@@ -94,9 +94,10 @@
 				</progress-circle>
 			</div>
 			<div class="control">
-			    <i class="icon-playlist"></i>
+			    <i class="icon-playlist" @click="openPlayList"></i>
 			</div>
 		</div>
+		<play-list ref="playList"></play-list>
 		<audio ref="audio" :src="currentSong.url" :paused="!playing" @canplay="ready" @error="error" @timeupdate="updateTime" @ended="onAudioEnd"></audio>
 	</div>
 </template>
@@ -110,6 +111,7 @@ import {playMode} from '@/common/js/config'
 import {shuffle} from '@/common/js/util'
 import Lyric from 'lyric-parser'
 import Scroll from '@/base/scroll'
+import PlayList from '@/components/playlist'
 const TRANSFORM = prefixStyle('transform')
 const TRANSITION = prefixStyle('transition')
 const TRANSITIONDURATION = prefixStyle('transitionDuration')
@@ -128,7 +130,8 @@ export default {
 	components:{
 		progressBar,
 		progressCircle,
-		Scroll
+		Scroll,
+		PlayList
 	},
 	created() {
       this.touch = {}
@@ -400,6 +403,9 @@ export default {
 			this.$refs.middleL.style[TRANSITIONDURATION] = `${time}ms`
 			this.touch.initiated = false
 		},
+		openPlayList() {
+			this.$refs.playList.open()
+		},
 		...mapMutations([
 			'SET_FULL_SCREEN',
 			'SET_PLAYING_STATE',
@@ -410,6 +416,9 @@ export default {
 	},
 	watch: {
 		currentSong(newSong,oldSong){
+			if(!newSong.id){
+				return
+			}
 			if(newSong.id === oldSong.id) {
 				return
 			}
