@@ -29,3 +29,11 @@ export const toplist = state => state.toplist
 // 搜索历史 search
 
 export const searchHistory = state => state.searchHistory
+
+// 播放历史
+
+export const playHistory = state => state.playHistory
+
+// 我喜欢的
+
+export const favoriteList = state => state.favoriteList

@@ -73,8 +73,8 @@
 						<div class="icon i-right" :class="songReady ? '' : 'disable'">
 							<i class="icon-next" @click="selectNext"></i>
 						</div>
-						<div class="icon i-right">
-							<i class="icon icon-not-favorite"></i>
+						<div class="icon i-right" @click="">
+							<i @click="toggleFavorite(currentSong)" class="icon" :class="getFavoriteIcon(currentSong)"></i>
 						</div>
 					</div>
 				</div>
@@ -98,11 +98,11 @@
 			</div>
 		</div>
 		<play-list ref="playList"></play-list>
-		<audio ref="audio" :src="currentSong.url" :paused="!playing" @canplay="ready" @error="error" @timeupdate="updateTime" @ended="onAudioEnd"></audio>
+		<audio ref="audio" :src="currentSong.url" :paused="!playing" @play="ready" @error="error" @timeupdate="updateTime" @ended="onAudioEnd"></audio>
 	</div>
 </template>
 <script>
-import {mapGetters,mapMutations} from 'vuex'
+import {mapGetters,mapMutations,mapActions} from 'vuex'
 import animations from 'create-keyframe-animation'
 import {prefixStyle} from '@/common/js/dom'
 import progressBar from '@/base/progress-bar'
@@ -112,10 +112,12 @@ import {shuffle} from '@/common/js/util'
 import Lyric from 'lyric-parser'
 import Scroll from '@/base/scroll'
 import PlayList from '@/components/playlist'
+import {playerMixin} from '@/common/js/mixin'
 const TRANSFORM = prefixStyle('transform')
 const TRANSITION = prefixStyle('transition')
 const TRANSITIONDURATION = prefixStyle('transitionDuration')
 export default {
+	mixins:[playerMixin],
 	data() {
 		return {
 			songReady: false,
@@ -145,12 +147,8 @@ export default {
 		},
 		...mapGetters([
 			'fullScreen',
-			'playlist',
-			'currentSong',
 			'playing',
-			'currentIndex',
-			'mode',
-			'sequenceList'
+			'currentIndex'
 		])
 	},
 	methods: {
@@ -229,6 +227,7 @@ export default {
 			this.songReady = false
 			if(this.playlist.length === 1){
 				this.loop()
+				return
 			} else {
 				let nextIndex = this.currentIndex + 1 
 				let index = nextIndex > this.playlist.length - 1 ? 0 : nextIndex
@@ -245,6 +244,7 @@ export default {
 			this.songReady = false
 			if(this.playlist.length === 1){
 				this.loop()
+				return
 			} else {
 				let prevIndex = this.currentIndex - 1 
 				let index = prevIndex < 0 ? this.playlist.length - 1 : prevIndex
@@ -256,6 +256,12 @@ export default {
 		},
 		ready() {
 			this.songReady = true
+			this.savePlayHistory(this.currentSong)
+			// 如果歌曲的播放晚于歌词的出现，播放的时候需要同步歌词
+			if (this.currentLyric) {
+				const currentTime = this.currentSong.duration * this.percent * 1000
+				this.currentLyric.seek(currentTime)
+			}
 		},
 		error() {
 			this.songReady = true
@@ -281,22 +287,6 @@ export default {
 				this.currentLyric.seek(currentTime * 1000)
 			}
 		},
-		// 模式选择
-		selectMode(){
-			let newMode = (this.mode + 1) % 3 
-			this.SET_PLAY_MODE(newMode)
-			let list = null
-			if(newMode === playMode.random) {
-				list = shuffle(this.sequenceList)
-			}else {
-				list = this.sequenceList
-			}
-			let index = list.findIndex((item) => {
-				return item.id === this.currentSong.id
-			})
-			this.SET_CURRENT_INDEX(index)
-			this.SET_PLAYLIST(list)
-		},
 		onAudioEnd(){
 			if(this.mode === playMode.loop){
 				this.loop()
@@ -314,6 +304,9 @@ export default {
 		// 歌词处理
 		getLyric() {
 			this.currentSong.getLyric().then((lyric) => {
+				if(this.currentSong.lyric !== lyric) {
+					return
+				}
 				let theLyric = new Lyric(lyric,this.handleLyric)
 				if(theLyric.lines.length === 0) {
 					theLyric.lines.push({
@@ -322,8 +315,9 @@ export default {
 					})
 				}
 				this.currentLyric = theLyric
-				if (this.playing) {
-					this.currentLyric.play()
+				if (this.playing && this.songReady) {
+					const currentTime = this.currentSong.duration * this.percent * 1000
+					this.currentLyric.seek(currentTime)
 				}
 			}).catch(() => {
 				this.currentLyric = null 
@@ -412,6 +406,9 @@ export default {
 			'SET_CURRENT_INDEX',
 			'SET_PLAY_MODE',
 			'SET_PLAYLIST'
+		]),
+		...mapActions([
+			'savePlayHistory'
 		])
 	},
 	watch: {
@@ -433,9 +430,12 @@ export default {
 			// 	this.$refs.audio.play()
 			// 	this.getLyric()
 			// })
-			let timer = setTimeout(() => {
-				clearTimeout(timer)
-				timer = null
+			
+			if(this.timer) {
+				clearTimeout(this.timer)
+				this.timer = null
+			}
+			this.timer = setTimeout(() => {
 				this.$refs.audio.play()
 				this.getLyric()
 			}, 1000)

@@ -43,10 +43,10 @@
     import Suggest from '@/components/suggest'
     import {getHotKey} from '@/api/search'
     import {ERR_OK} from '@/api/config'
-    import {playlistMixin} from '@/common/js/mixin'
+    import {playlistMixin,searchMixin} from '@/common/js/mixin'
     import {mapActions,mapGetters} from 'vuex'
     export default {
-        mixins:[playlistMixin],
+        mixins:[playlistMixin,searchMixin],
         components: {
             SearchBox,
             Scroll,
@@ -56,8 +56,7 @@
         },
         data(){
             return {
-                hotKey:[],
-                query:''
+                hotKey:[]
             }
         },
         created() {
@@ -66,10 +65,7 @@
         computed: {
             shortcut() {
                 return this.hotKey.concat(this.searchHistory)
-            },
-            ...mapGetters([
-                'searchHistory'
-            ])
+            }
         },
         methods:{
             handlePlaylist(playlist){
@@ -79,28 +75,12 @@
                 this.$refs.searchResult.style.bottom = bottom
                 this.$refs.suggest.refresh()
             },
-            onQueryChange(query) {
-                this.query = query
-            },
-            addQuery(query) {
-                this.$refs.searchBox.setQuery(query)
-            },
             _getHotKey() {
                 getHotKey().then((res) => {
                     if(res.code === ERR_OK){
                         this.hotKey = res.data.hotkey.slice(0,10)
                     }
                 })
-            },
-            blurInput() {
-                // 手机端如果不对input进行blur，输入框是不会收起来的，better-scroll 改变了一些触摸行为，因此需要执行这个操作。
-                this.$refs.searchBox.blur()
-            },
-            saveSearch() {
-                this.saveSearchHistory(this.query)
-            },
-            deleteSearch(item){
-                this.deleteSearchHistory(item)
             },
             clearSearch(){
                 this.clearSearchHistory()
@@ -109,8 +89,6 @@
               this.$refs.confirm.show()  
             },
             ...mapActions([
-                'saveSearchHistory',
-                'deleteSearchHistory',
                 'clearSearchHistory'
             ])
         },
@@ -119,7 +97,7 @@
                 if(!newQuery) {
                     setTimeout(() => {
                         this.$refs.shortcut.refresh()
-                    })
+                    },20)
                 }
             }
         }

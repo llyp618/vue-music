@@ -4,7 +4,7 @@
             <div class="list-wrapper" @click.stop>
                 <div class="list-header">
                     <h1 class="title">
-                        <i class="icon" :class="iconMode" @clicks.top="selectMode">
+                        <i class="icon" :class="iconMode" @click.top="selectMode">
                         </i>
                         <span class="text">
                             {{textMode}}
@@ -14,13 +14,13 @@
                         </span>
                     </h1>
                 </div>
-                <scroll class="list-content" :data="sequenceList" ref="listContent">
+                <scroll class="list-content" :data="sequenceList" ref="listContent" :refreshDelay="refreshDelay">
                     <transition-group name="list" tag="ul">
                         <li class="item" v-for="(item, index) in sequenceList"  ref="items" :key="item.id">
                             <i class="current" :class="getCurrentIcon(item)"></i>
                             <span class="text" @click.stop="selectSong(item,index)">{{item.name}}</span>
-                            <span class="like">
-                                <i class="icon-not-favorite"></i>
+                            <span class="like" @click.stop="toggleFavorite(item)" >
+                               <i class="icon" :class="getFavoriteIcon(item)"></i>
                             </span>
                             <span class="delete" @click.stop="_deleteSong(item)">
                                 <i class="icon-delete"></i>
@@ -29,7 +29,7 @@
                     </transition-group>
                 </scroll>
                 <div class="list-operate">
-                    <div class="add">
+                    <div class="add" @click="addSong">
                         <i class="icon-add"></i>
                         <span class="text">添加歌曲到队列</span>
                     </div>
@@ -39,6 +39,7 @@
                 </div>
             </div>
             <confirm text="确认清空播放列表吗？" ref="confirm" @sure="_clearPlaylist"></confirm>
+            <add-song ref="addSong"></add-song>
         </div>
     </transition>
 </template>
@@ -46,25 +47,24 @@
     import {mapGetters,mapMutations,mapActions} from 'vuex'
     import Scroll from '@/base/scroll'
     import Confirm from '@/base/confirm'
+    import AddSong from '@/components/add-song'
     import {playMode} from '@/common/js/config'
     import {shuffle} from '@/common/js/util'
+    import {playerMixin} from '@/common/js/mixin'
     export default {
+        mixins:[playerMixin],
         components:{
             Scroll,
-            Confirm
+            Confirm,
+            AddSong
         },
         data() {
             return {
-                show: false
+                show: false,
+                refreshDelay: 220
             }
         },
         computed: {
-            ...mapGetters([
-                'mode',
-                'sequenceList',
-                'playlist',
-                'currentSong'
-            ]),
             iconMode(){
                 return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
             },
@@ -102,21 +102,6 @@
                 let currentItem = this.$refs.items[i]
                 this.$refs.listContent.scrollToElement(currentItem, 300)
             },
-            selectMode() {
-                let newMode = (this.mode + 1) % 3 
-                this.SET_PLAY_MODE(newMode)
-                let list = null
-                if(newMode === playMode.random) {
-                    list = shuffle(this.sequenceList)
-                }else {
-                    list = this.sequenceList
-                }
-                let index = list.findIndex((item) => {
-                    return item.id === this.currentSong.id
-                })
-                this.SET_CURRENT_INDEX(index)
-                this.SET_PLAYLIST(list)
-            },
             _deleteSong(song) {
                 this.deleteSong(song)
                 if (!this.playlist.length) {
@@ -129,6 +114,9 @@
             _clearPlaylist(){
                 this.close()
                 this.clearPlaylist()
+            },
+            addSong() {
+                this.$refs.addSong.show()
             },
             ...mapMutations([
                 'SET_CURRENT_INDEX',
