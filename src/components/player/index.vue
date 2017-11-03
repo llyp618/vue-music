@@ -436,6 +436,7 @@ export default {
 				this.timer = null
 			}
 			this.timer = setTimeout(() => {
+				this.currentLyric = null
 				this.$refs.audio.play()
 				this.getLyric()
 			}, 1000)
