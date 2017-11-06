@@ -214,9 +214,6 @@ export default {
 		},
 		// 开关音乐
 		togglePlaying(){
-			if(!this.songReady){  // 防止快速点击
-				return
-			}
 			this.SET_PLAYING_STATE(!this.playing)
 			if (this.currentLyric) {
 				this.currentLyric.togglePlay()
