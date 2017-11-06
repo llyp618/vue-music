@@ -214,6 +214,9 @@ export default {
 		},
 		// 开关音乐
 		togglePlaying(){
+			if(!this.songReady){  // 防止快速点击
+				return
+			}
 			this.SET_PLAYING_STATE(!this.playing)
 			if (this.currentLyric) {
 				this.currentLyric.togglePlay()
@@ -305,6 +308,7 @@ export default {
 		getLyric() {
 			this.currentSong.getLyric().then((lyric) => {
 				if(this.currentSong.lyric !== lyric) {
+					console.log(111)
 					return
 				}
 				let theLyric = new Lyric(lyric,this.handleLyric)
@@ -315,7 +319,7 @@ export default {
 					})
 				}
 				this.currentLyric = theLyric
-				if (this.playing && this.songReady) {
+				if (this.playing) {
 					const currentTime = this.currentSong.duration * this.percent * 1000
 					this.currentLyric.seek(currentTime)
 				}
@@ -421,6 +425,7 @@ export default {
 			}
 			if(this.currentLyric){
 				this.currentLyric.stop()
+				this.currentLyric = null
 				this.currentTime = 0
 				this.playingLyric = ''
 				this.currentLineNum = 0
@@ -436,7 +441,6 @@ export default {
 				this.timer = null
 			}
 			this.timer = setTimeout(() => {
-				this.currentLyric = null
 				this.$refs.audio.play()
 				this.getLyric()
 			}, 1000)
